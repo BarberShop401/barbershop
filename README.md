@@ -63,3 +63,27 @@ As a user, I want to be able to log in/out so that I can have a profile
 
 Acceptance Test: Ensure that a user profile is created 
 
+
+## Wireframes:
+ ### Main Acitivy (MVP):
+ ![Main Acitivy](./assets/barbershop-main-activity.jpg)
+
+ ### Playback Acitivy (Stretch goal):
+ ![Playback Acitivy](./assets/barbershop-playback-activity.jpg)
+
+ ### Settings Acitivy (Stretch goal):
+ ![Settings Acitivy](./assets/barbershop-settings-activity.jpg)
+
+ ### Login Acitivy (Stretch goal):
+ ![Login Acitivy](./assets/barbershop-login-activity.jpg)
+
+ ### Help Acitivy (Stretch goal):
+ ![Help Acitivy](./assets/barbershop-help-activity.jpg)
+
+
+ ## Domain Model
+ ### MVP:
+  ![MVP domain model](./assets/barbershop-mvp-domain-model.jpg)
+
+  ### With stretch goals:
+  ![Domain model with stretch goals](./assets/barbershop-domain-model.jpg)
