@@ -63,3 +63,27 @@ As a user, I want to be able to log in/out so that I can have a profile
 
 Acceptance Test: Ensure that a user profile is created 
 
+
+## Wireframes:
+ ### Main Activity (MVP):
+ ![Main Activity](./assets/barbershop-main-activity.jpg)
+
+ ### Playback Activity (Stretch goal):
+ ![Playback Activity](./assets/barbershop-playback-activity.jpg)
+
+ ### Settings Activity (Stretch goal):
+ ![Settings Activity](./assets/barbershop-settings-activity.jpg)
+
+ ### Login Activity (Stretch goal):
+ ![Login Activity](./assets/barbershop-login-activity.jpg)
+
+ ### Help Activity (Stretch goal):
+ ![Help Activity](./assets/barbershop-help-activity.jpg)
+
+
+ ## Domain Model
+ ### MVP:
+  ![MVP domain model](./assets/barbershop-mvp-domain-model.jpg)
+
+  ### With stretch goals:
+  ![Domain model with stretch goals](./assets/barbershop-domain-model.jpg)
