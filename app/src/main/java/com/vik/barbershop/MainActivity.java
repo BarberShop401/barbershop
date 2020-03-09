@@ -10,8 +10,25 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.media.AudioManager;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
+import android.widget.TextView;
+
+import java.io.File;
+
+import be.tarsos.dsp.AudioDispatcher;
+import be.tarsos.dsp.AudioEvent;
+import be.tarsos.dsp.AudioProcessor;
+import be.tarsos.dsp.PitchShifter;
+import be.tarsos.dsp.effects.DelayEffect;
+import be.tarsos.dsp.io.android.AndroidAudioPlayer;
+import be.tarsos.dsp.io.android.AndroidFFMPEGLocator;
+import be.tarsos.dsp.io.android.AudioDispatcherFactory;
+import be.tarsos.dsp.pitch.PitchDetectionHandler;
+import be.tarsos.dsp.pitch.PitchDetectionResult;
+import be.tarsos.dsp.pitch.PitchProcessor;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
 
@@ -35,15 +52,36 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         //check for RECORD_AUDIO permission, ask for it if we don't have it, then start recording
         requestRecordAudioPermission();
 
+        //init sensor manager
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         if (sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null) {
             Log.i("ljw", "success! we have an accelerometer");
-
             accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
             sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
         } else {
             Log.i("ljw", "fail! we dont have an accelerometer!");
         }
+
+
+        AudioDispatcher dispatcher = AudioDispatcherFactory.fromDefaultMicrophone(22050,1024,0);
+        PitchDetectionHandler pdh = new PitchDetectionHandler() {
+            @Override
+            public void handlePitch(PitchDetectionResult result, AudioEvent e) {
+                final float pitchInHz = result.getPitch();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        TextView text = findViewById(R.id.pitchView);
+                        text.setText("" + pitchInHz);
+                    }
+                });
+            }
+        };
+//        AudioProcessor p = new PitchProcessor(PitchProcessor.PitchEstimationAlgorithm.FFT_YIN, 22050, 1024, pdh);
+//        AudioProcessor p = new PitchShifter(2222, 4444, 1024, 500);
+        AudioProcessor p = new DelayEffect(0.5, 0.5, 44100);
+        dispatcher.addAudioProcessor(p);
+        new Thread(dispatcher,"Audio Dispatcher").start();
     }
 
 
@@ -61,14 +99,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         deltaZ = Math.abs(lastZ - event.values[2]);
 
         // if the change is below 2, it is just plain noise
-
         if (deltaX < 2) deltaX = 0;
         if (deltaY < 2) deltaY = 0;
         if (deltaZ < 2) deltaZ = 0;
 
-        Log.i("ljw", "x: " + deltaX);
-        Log.i("ljw", "y: " + deltaY);
-        Log.i("ljw", "z: " + deltaZ);
+//        Log.i("ljw", "x/y/z: " + deltaX + "/" + deltaY + "/" + deltaZ);
     }
 
     @Override
@@ -76,7 +111,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         //necessary for interface implementation but not being used currently
     }
 
-    //onPause() unregister the accelerometer for stop listening the events
+//    onPause() unregister the accelerometer for stop listening the events
     protected void onPause() {
         super.onPause();
         sensorManager.unregisterListener(this);
@@ -95,6 +130,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             audioRecorder = new AudioRecorder();
         }
     }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
 
@@ -118,10 +154,27 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
 
     }
-
-
     @Override
     public void onPointerCaptureChanged(boolean hasCapture) {
 
     }
+
+    //https://0110.be/tags/TarsosDSP
+
+    public void playSavedAudioWithTarsos() {
+        new AndroidFFMPEGLocator(this);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                File externalStorage = Environment.getExternalStorageDirectory();
+                File mp3 = new File(externalStorage.getAbsolutePath() , "/audio.mp3");
+                AudioDispatcher adp;
+                adp = AudioDispatcherFactory.fromPipe(mp3.getAbsolutePath(),44100,5000,2500);
+                adp.addAudioProcessor(new AndroidAudioPlayer(adp.getFormat(),5000, AudioManager.STREAM_MUSIC));
+                adp.run();
+            }
+        }).start();
+    }
+
+
 }
