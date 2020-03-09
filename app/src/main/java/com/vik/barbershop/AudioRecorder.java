@@ -9,8 +9,6 @@ import android.util.Log;
 
 public class AudioRecorder extends Thread {
 
-    Control
-
     private boolean stopped = false;
 
     /**
