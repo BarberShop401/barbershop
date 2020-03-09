@@ -5,7 +5,9 @@ import android.media.AudioManager;
 import android.media.AudioRecord;
 import android.media.AudioTrack;
 import android.media.MediaRecorder;
+import android.media.audiofx.PresetReverb;
 import android.util.Log;
+import java.util.Arrays;
 
 public class AudioRecorder extends Thread {
 
@@ -18,6 +20,7 @@ public class AudioRecorder extends Thread {
         android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
         start();
     }
+
 
     @Override
     public void run() {
@@ -32,21 +35,36 @@ public class AudioRecorder extends Thread {
          * playback.
          */
         try {
-            int N = AudioRecord.getMinBufferSize(8000, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
-            recorder = new AudioRecord(MediaRecorder.AudioSource.MIC, 8000, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, N * 10);
-            track = new AudioTrack(AudioManager.STREAM_MUSIC, 8000,
+            int N = AudioRecord.getMinBufferSize(44100, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
+            recorder = new AudioRecord(MediaRecorder.AudioSource.MIC, 44100, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, N * 10);
+            track = new AudioTrack(AudioManager.STREAM_MUSIC, 44100,
                     AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT, N * 10, AudioTrack.MODE_STREAM);
+
             recorder.startRecording();
             track.play();
+
             /*
              * Loops until something outside of this thread stops it.
              * Reads the data from the recorder and writes it to the audio track for playback.
              */
+            long count = 0;
             while (!stopped) {
-                Log.i("Map", "Writing new data to buffer");
+//                Log.i("Map", "Writing new data to buffer");
+
                 short[] buffer = buffers[ix++ % buffers.length];
+
                 N = recorder.read(buffer, 0, buffer.length);
+
+//                for (int i = 0; i < buffer.length; i++) {
+//                    if (buffer[i] % 2 == 0) buffer[i] = 100;
+//                }
+
                 track.write(buffer, 0, buffer.length);
+
+                count++;
+                if (count % 200 == 0) {
+                    Log.i("ljw", Arrays.toString(buffer));
+                }
             }
         } catch (Throwable x) {
             Log.w("Audio", "Error reading voice audio", x);
@@ -67,4 +85,5 @@ public class AudioRecorder extends Thread {
     private void close() {
         stopped = true;
     }
+
 }
