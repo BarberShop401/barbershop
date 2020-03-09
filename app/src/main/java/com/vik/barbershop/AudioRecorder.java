@@ -9,6 +9,8 @@ import android.util.Log;
 
 public class AudioRecorder extends Thread {
 
+    Control
+
     private boolean stopped = false;
 
     /**
@@ -32,9 +34,9 @@ public class AudioRecorder extends Thread {
          * playback.
          */
         try {
-            int N = AudioRecord.getMinBufferSize(8000, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
-            recorder = new AudioRecord(MediaRecorder.AudioSource.MIC, 8000, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, N * 10);
-            track = new AudioTrack(AudioManager.STREAM_MUSIC, 8000,
+            int N = AudioRecord.getMinBufferSize(44100, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
+            recorder = new AudioRecord(MediaRecorder.AudioSource.MIC, 44100, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, N * 10);
+            track = new AudioTrack(AudioManager.STREAM_MUSIC, 44100,
                     AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT, N * 10, AudioTrack.MODE_STREAM);
             recorder.startRecording();
             track.play();
@@ -43,10 +45,15 @@ public class AudioRecorder extends Thread {
              * Reads the data from the recorder and writes it to the audio track for playback.
              */
             while (!stopped) {
-                Log.i("Map", "Writing new data to buffer");
+//                Log.i("Map", "Writing new data to buffer");
                 short[] buffer = buffers[ix++ % buffers.length];
+                for (int i = 0; i < buffer.length; i++) {
+                    buffer[i] = (short) (buffer[i] - 300);
+                    Log.i("Map", (ix % buffers.length) + "");
+                }
                 N = recorder.read(buffer, 0, buffer.length);
-                track.write(buffer, 0, buffer.length);
+//                Log.i("Map", N + "");
+                track.write(buffer, 0, N);
             }
         } catch (Throwable x) {
             Log.w("Audio", "Error reading voice audio", x);
